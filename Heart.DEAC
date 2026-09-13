@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I Love You</title>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        background: #000;
+        font-family: Arial, sans-serif;
+    }
+
+    canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+</style>
+</head>
+
+<body>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let W, H;
+let particles = [];
+
+function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+}
+
+resize();
+window.addEventListener("resize", resize);
+
+// Corazón matemático
+function heart(t, scale) {
+    const x = 16 * Math.pow(Math.sin(t), 3);
+    const y = -(13 * Math.cos(t)
+        - 5 * Math.cos(2 * t)
+        - 2 * Math.cos(3 * t)
+        - Math.cos(4 * t));
+
+    return {
+        x: W / 2 + x * scale,
+        y: H / 2 + y * scale
+    };
+}
+
+// Partículas de texto
+function createParticle(t) {
+
+    const target = heart(t, Math.min(W, H) / 38);
+
+    particles.push({
+        x: W / 2,
+        y: H / 2,
+
+        targetX: target.x,
+        targetY: target.y,
+
+        progress: 0,
+
+        speed: 0.018 + Math.random() * 0.012,
+
+        size: 13 + Math.random() * 5,
+
+        opacity: 0.5 + Math.random() * 0.5,
+
+        delay: Math.random() * 20
+    });
+}
+
+// Crear puntos siguiendo el corazón
+let angle = 0;
+
+function addText() {
+
+    createParticle(angle);
+
+    angle += 0.075;
+
+    if (angle > Math.PI * 2) {
+        angle = 0;
+    }
+}
+
+// Animación
+function animate() {
+
+    ctx.fillStyle = "rgba(0, 0, 0, 0.18)";
+    ctx.fillRect(0, 0, W, H);
+
+    for (let i = 0; i < particles.length; i++) {
+
+        const p = particles[i];
+
+        if (p.delay > 0) {
+            p.delay--;
+            continue;
+        }
+
+        p.progress += p.speed;
+
+        if (p.progress > 1) {
+            p.progress = 1;
+        }
+
+        // Movimiento desde el centro hacia el corazón
+        const x =
+            W / 2 +
+            (p.targetX - W / 2) * p.progress;
+
+        const y =
+            H / 2 +
+            (p.targetY - H / 2) * p.progress;
+
+        ctx.save();
+
+        ctx.font = `bold ${p.size}px Arial`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        ctx.shadowColor = "#008cff";
+        ctx.shadowBlur = 18;
+
+        ctx.fillStyle =
+            `rgba(0, 145, 255, ${p.opacity})`;
+
+        ctx.fillText("I LOVE YOU", x, y);
+
+        ctx.restore();
+    }
+
+    // Cuando termina de llenar el corazón,
+    // seguimos agregando textos lentamente
+    requestAnimationFrame(animate);
+}
+
+// Generar textos progresivamente
+setInterval(addText, 45);
+
+animate();
+</script>
+
+</body>
+</html>
